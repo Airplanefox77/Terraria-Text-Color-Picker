@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Terraria Gradient Maker — Vortex's Toy</title>
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#0f1226;
+    --card:#11131f;
+    --muted:#9aa0b4;
+    --accent:#A200FF;
+    --glass: rgba(255,255,255,0.04);
+    --radius:14px;
+  }
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: radial-gradient(1200px 600px at 10% 10%, rgba(162,0,255,0.08), transparent),
+                radial-gradient(900px 400px at 90% 80%, rgba(0,200,255,0.03), transparent),
+                var(--bg);
+    color:#E8EAFF;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    padding:32px;
+  }
+
+  .container{
+    max-width:1100px;
+    margin:0 auto;
+  }
+
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    margin-bottom:18px;
+  }
+  .title {
+    display:flex;
+    gap:14px;
+    align-items:center;
+  }
+  .logo {
+    width:64px;
+    height:64px;
+    border-radius:12px;
+    background:linear-gradient(135deg,var(--accent),#00E6FF);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:800;
+    color:white;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5), inset 0 -6px 16px rgba(255,255,255,0.05);
+    flex-shrink:0;
+  }
+  h1{font-size:20px;margin:0}
+  p.lead{margin:0;color:var(--muted);font-size:13px}
+
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:var(--radius);
+    padding:18px;
+    box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+    border: 1px solid rgba(255,255,255,0.03);
+  }
+
+  main {
+    display:grid;
+    grid-template-columns: 1fr 420px;
+    gap:18px;
+    margin-top:18px;
+  }
+
+  /* Left (main controls) */
+  .controls {
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  .gradient-bar-wrap{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .bar {
+    height:52px;
+    border-radius:12px;
+    overflow:hidden;
+    position:relative;
+    border:1px solid rgba(255,255,255,0.03);
+    background: linear-gradient(90deg,#ff0000,#0000ff);
+  }
+  .bar .stops {
+    position:absolute;
+    left:0;right:0;top:0;bottom:0;
+    pointer-events:none;
+  }
+  .stop-dot{
+    position:absolute;
+    bottom:-8px;
+    transform:translateX(-50%);
+    width:20px;height:20px;border-radius:50%;
+    border: 3px solid rgba(0,0,0,0.45);
+    pointer-events:auto;
+    cursor:pointer;
+    transition: transform .12s ease;
+  }
+  .stop-dot:hover { transform: translateX(-50%) scale(1.12); }
+
+  .stop-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    padding:8px;
+    background:linear-gradient(90deg, rgba(255,255,255,0.015), transparent);
+    border-radius:10px;
+  }
+
+  .stop-controls{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex:1;
+  }
+
+  .stop-controls input[type="color"]{
+    width:44px;height:40px;border-radius:8px;border:none;padding:0;background:transparent;cursor:pointer;
+  }
+
+  .stop-controls input[type="range"]{
+    -webkit-appearance:none;background:transparent;width:100%;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:white;box-shadow:0 2px 6px rgba(0,0,0,0.5);
+  }
+
+  .tiny {
+    font-size:12px;color:var(--muted);
+    min-width:84px;text-align:right;
+  }
+
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;border:none;cursor:pointer;
+    background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    color:var(--muted);
+    font-weight:600;
+    transition:all .12s ease;
+  }
+  .btn.primary{ background:linear-gradient(90deg,var(--accent),#00E6FF); color:white; box-shadow:0 8px 24px rgba(162,0,255,0.12); }
+  .btn:active{ transform:translateY(1px) }
+
+  .row {
+    display:flex;gap:10px;align-items:center;
+  }
+
+  textarea{
+    width:100%;min-height:120px;border-radius:10px;padding:12px;border:none;background:rgba(0,0,0,0.25);color:#f2f4ff;font-family:monospace;
+  }
+
+  /* Right (preview / output) */
+  .preview {
+    display:flex;flex-direction:column;gap:12px;
+  }
+  .preview-box{
+    border-radius:12px;padding:18px;min-height:120px;display:flex;align-items:center;justify-content:center;
+    background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+    border: 1px dashed rgba(255,255,255,0.03);
+    text-align:center;
+  }
+  .preview-demo {
+    font-weight:800;font-size:24px;letter-spacing:2px;
+    white-space:pre-wrap;word-break:break-word;
+  }
+
+  footer{margin-top:18px;color:var(--muted);font-size:13px;text-align:center}
+  .muted{color:var(--muted);font-size:13px}
+
+  /* Responsive */
+  @media (max-width:980px){
+    main{grid-template-columns:1fr}
+    .preview{order:2}
+  }
+
+  /* small helpers */
+  .flex-between{display:flex;justify-content:space-between;align-items:center}
+  .stop-actions{display:flex;gap:8px}
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="title">
+        <div class="logo">VG</div>
+        <div>
+          <h1>Terraria Gradient Maker</h1>
+          <p class="lead">Build multi-stop gradients and export `[c/HEX:char]` strings for Terraria (copy & paste ready).</p>
+        </div>
+      </div>
+      <div class="muted">Made for you, Vortex ✨</div>
+    </header>
+
+    <main>
+      <section class="card controls">
+        <div class="gradient-bar-wrap">
+          <div class="flex-between">
+            <div style="font-weight:700">Gradient Bar</div>
+            <div class="muted">Add stops, drag sliders, preview live</div>
+          </div>
+
+          <!-- Gradient bar -->
+          <div id="bar" class="bar" title="Gradient preview">
+            <div class="stops" id="stop-dots"></div>
+          </div>
+
+          <div class="row" style="justify-content:space-between">
+            <div style="display:flex;gap:8px">
+              <button class="btn" id="add-stop-btn" title="Add a new color stop">➕ Add stop</button>
+              <button class="btn" id="rainbow-btn" title="Apply rainbow preset">🌈 Rainbow preset</button>
+              <button class="btn" id="reset-btn" title="Reset to two stops">♻️ Reset</button>
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center">
+              <label class="muted" style="font-size:13px">Color spaces?</label>
+              <input type="checkbox" id="color-spaces" checked>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:8px"></div>
+
+        <!-- Stops list -->
+        <div id="stops-list" style="display:flex;flex-direction:column;gap:10px"></div>
+
+        <div style="height:12px"></div>
+
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="flex:1">
+            <label class="muted">Text</label>
+            <input type="text" id="text-input" style="width:100%;padding:10px;border-radius:10px;border:none;background:rgba(0,0,0,0.25);color:white;font-size:15px" value="AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH" />
+          </div>
+
+          <div style="min-width:120px">
+            <label class="muted">Mode</label>
+            <select id="mode" style="width:100%;padding:10px;border-radius:10px;border:none;background:rgba(0,0,0,0.25);color:white;font-weight:600">
+              <option value="linear">Left → Right (linear)</option>
+              <option value="per-letter">Per-letter (same)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+          <button class="btn" id="preview-copy" title="Copy preview colored HTML (for web)">Copy HTML</button>
+          <button class="btn primary" id="copy-btn" title="Copy Terraria codes">Copy Terraria Code</button>
+        </div>
+
+      </section>
+
+      <aside class="card preview">
+        <div class="flex-between">
+          <div>
+            <div style="font-weight:700">Preview</div>
+            <div class="muted">How the text will look in-game</div>
+          </div>
+          <div style="text-align:right">
+            <div class="muted">Output</div>
+            <div style="font-weight:700;margin-top:6px" id="hex-count">0 chars</div>
+          </div>
+        </div>
+
+        <div class="preview-box">
+          <div class="preview-demo" id="preview"></div>
+        </div>
+
+        <div>
+          <label class="muted">Terraria string (copy this)</label>
+          <textarea id="output" readonly></textarea>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:space-between;align-items:center">
+          <div class="muted">Tip: paste into a Terraria sign, chat command, or server broadcast.</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn" id="download-btn">⬇️ Save .txt</button>
+            <button class="btn" id="select-all">Select</button>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="muted">Deploy: create a GitHub repo named <code>yourname.github.io</code> and push this file as <code>index.html</code>; GitHub Pages will serve it automatically.</footer>
+  </div>
+
+<script>
+/*
+  Terraria Gradient Maker
+  - Multi-stop gradient editor
+  - Exports per-character tags like: [c/FF00AA:A][c/00FF11:B]...
+  - Author: ChatGPT (generated for Vortex)
+*/
+
+const barEl = document.getElementById('bar');
+const stopDotsEl = document.getElementById('stop-dots');
+const stopsListEl = document.getElementById('stops-list');
+const addStopBtn = document.getElementById('add-stop-btn');
+const rainbowBtn = document.getElementById('rainbow-btn');
+const resetBtn = document.getElementById('reset-btn');
+const textInput = document.getElementById('text-input');
+const outputEl = document.getElementById('output');
+const previewEl = document.getElementById('preview');
+const copyBtn = document.getElementById('copy-btn');
+const modeEl = document.getElementById('mode');
+const colorSpacesCheckbox = document.getElementById('color-spaces');
+const copyHtmlBtn = document.getElementById('preview-copy');
+const downloadBtn = document.getElementById('download-btn');
+const selectAllBtn = document.getElementById('select-all');
+const hexCountEl = document.getElementById('hex-count');
+
+// Stop structure: {id, color:'#RRGGBB', pos:0..1}
+let stops = [];
+
+// Utility functions
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+function hexToRgb(hex){
+  hex = hex.replace('#','');
+  if(hex.length===3) hex = hex.split('').map(ch=>ch+ch).join('');
+  const r = parseInt(hex.slice(0,2),16);
+  const g = parseInt(hex.slice(2,4),16);
+  const b = parseInt(hex.slice(4,6),16);
+  return {r,g,b};
+}
+function rgbToHex({r,g,b}){
+  return [r,g,b].map(v=>clamp(Math.round(v),0,255).toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+function lerp(a,b,t){ return a + (b-a)*t; }
+function interpColor(hexA, hexB, t){
+  const A = hexToRgb(hexA);
+  const B = hexToRgb(hexB);
+  return rgbToHex({
+    r: lerp(A.r, B.r, t),
+    g: lerp(A.g, B.g, t),
+    b: lerp(A.b, B.b, t)
+  });
+}
+
+// Given a normalized position 0..1, sample the gradient defined by stops
+function sampleAt(t){
+  if(stops.length===0) return '000000';
+  if(stops.length===1) return stops[0].color.replace('#','').toUpperCase();
+  // ensure stops sorted
+  stops.sort((a,b)=>a.pos-b.pos);
+  if(t <= stops[0].pos) return stops[0].color.replace('#','').toUpperCase();
+  if(t >= stops[stops.length-1].pos) return stops[stops.length-1].color.replace('#','').toUpperCase();
+  // find segment
+  for(let i=0;i<stops.length-1;i++){
+    const a = stops[i], b = stops[i+1];
+    if(t >= a.pos && t <= b.pos){
+      const local = (t - a.pos) / (b.pos - a.pos);
+      return interpColor(a.color, b.color, local);
+    }
+  }
+  return stops[stops.length-1].color.replace('#','').toUpperCase();
+}
+
+// Build CSS linear-gradient from stops
+function gradientCss(){
+  if(stops.length===0) return 'linear-gradient(90deg,#000,#000)';
+  stops.sort((a,b)=>a.pos-b.pos);
+  const parts = stops.map(s => `${s.color} ${Math.round(s.pos*100)}%`);
+  return `linear-gradient(90deg, ${parts.join(', ')})`;
+}
+
+// UI: render gradient bar & stops list
+function renderUI(){
+  // bar
+  barEl.style.background = gradientCss();
+
+  // dots
+  stopDotsEl.innerHTML = '';
+  stops.forEach(s=>{
+    const dot = document.createElement('div');
+    dot.className = 'stop-dot';
+    dot.style.left = (s.pos*100)+'%';
+    dot.style.background = s.color;
+    stopDotsEl.appendChild(dot);
+  });
+
+  // stops list
+  stopsListEl.innerHTML = '';
+  stops.forEach((s, idx) => {
+    const row = document.createElement('div');
+    row.className = 'stop-row';
+    // color picker
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.value = s.color;
+    colorInput.addEventListener('input', (e)=>{
+      s.color = e.target.value;
+      updateAll();
+    });
+
+    // position slider
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = 0; slider.max = 100; slider.value = Math.round(s.pos*100);
+    slider.addEventListener('input', (e)=>{
+      s.pos = parseInt(e.target.value)/100;
+      updateAll();
+    });
+
+    // pos label
+    const tiny = document.createElement('div');
+    tiny.className = 'tiny';
+    tiny.textContent = `${Math.round(s.pos*100)}%`;
+
+    // remove button
+    const rm = document.createElement('button');
+    rm.className = 'btn';
+    rm.textContent = 'Remove';
+    rm.addEventListener('click', ()=>{
+      stops = stops.filter(x=>x.id!==s.id);
+      updateAll();
+    });
+
+    // move left/right quick
+    const left = document.createElement('button');
+    left.className = 'btn';
+    left.textContent = '◀';
+    left.addEventListener('click', ()=>{
+      s.pos = clamp(s.pos - 0.05, 0, 1);
+      updateAll();
+    });
+
+    const right = document.createElement('button');
+    right.className = 'btn';
+    right.textContent = '▶';
+    right.addEventListener('click', ()=>{
+      s.pos = clamp(s.pos + 0.05, 0, 1);
+      updateAll();
+    });
+
+    // assemble
+    const leftControls = document.createElement('div');
+    leftControls.className = 'stop-controls';
+    leftControls.style.flex = '1';
+    leftControls.appendChild(colorInput);
+    leftControls.appendChild(slider);
+
+    const actions = document.createElement('div');
+    actions.className = 'stop-actions';
+    actions.appendChild(left);
+    actions.appendChild(right);
+    actions.appendChild(rm);
+
+    row.appendChild(leftControls);
+    row.appendChild(tiny);
+    row.appendChild(actions);
+
+    stopsListEl.appendChild(row);
+
+    // update tiny on slider input (so label shows)
+    slider.addEventListener('input', ()=> tiny.textContent = `${slider.value}%`);
+  });
+
+  // if no stops, offer button hint
+  if(stops.length===0){
+    stopsListEl.innerHTML = '<div class="muted">No color stops yet. Click "Add stop" or use Rainbow preset.</div>';
+  }
+}
+
+// Default sample gradient
+function defaultStops(){
+  stops = [
+    { id: cryptoId(), color:'#FF0000', pos:0.0 },
+    { id: cryptoId(), color:'#FFFF00', pos:0.25 },
+    { id: cryptoId(), color:'#00FF00', pos:0.5 },
+    { id: cryptoId(), color:'#00FFFF', pos:0.75 },
+    { id: cryptoId(), color:'#8000FF', pos:1.0 }
+  ];
+}
+
+// Utility id generator
+function cryptoId(){ return Math.random().toString(36).slice(2,9); }
+
+// Map text to Terraria string
+function buildTerrariaString(text){
+  if(!text) return '';
+  const chars = Array.from(text); // preserves Unicode proper splitting
+  const includeSpaces = colorSpacesCheckbox.checked;
+  const visibleCharsCount = includeSpaces ? chars.length : chars.filter(c=>c!==' ').length;
+
+  // If we want to treat each char as a position along 0..1
+  let indices = [];
+  if(visibleCharsCount <= 1){
+    indices = chars.map(()=>0);
+  } else {
+    // For each character we need a progress value based on how many previous colored chars exist
+    let countSoFar = 0;
+    for(let i=0;i<chars.length;i++){
+      if(chars[i] === ' ' && !includeSpaces){
+        indices.push(null);
+      } else {
+        const t = countSoFar / (visibleCharsCount - 1);
+        indices.push(t);
+        countSoFar++;
+      }
+    }
+  }
+
+  // Now construct string
+  let out = '';
+  for(let i=0;i<chars.length;i++){
+    const ch = chars[i];
+    if(indices[i] === null){
+      // spaces that are left uncolored - use plain space as-is
+      out += ch;
+    } else {
+      const t = indices[i] ?? 0;
+      const hex = sampleAt(t);
+      // need to escape ']' or weird chars? Terraria accepts characters; keep raw
+      out += `[c/${hex}:${ch}]`;
+    }
+  }
+  return out;
+}
+
+// Update preview and output
+function updateAll(){
+  renderUI();
+
+  const text = textInput.value || '';
+  const terrStr = buildTerrariaString(text);
+  outputEl.value = terrStr;
+  // build a HTML preview: replace tags with span styled
+  previewEl.innerHTML = terrStr.replace(/\[c\/([A-Fa-f0-9]{6}):([\s\S])\]/g, (m, hex, ch) => {
+    // escape special HTML in ch
+    const safe = ch === ' ' ? '&nbsp;' : (ch==='<'? '&lt;' : (ch==='>'? '&gt;' : (ch==='&' ? '&amp;' : ch)));
+    return `<span style="color:#${hex};">${safe}</span>`;
+  });
+  hexCountEl.textContent = `${Array.from(text).length} chars • ${stops.length} stops`;
+}
+
+// Add a stop at position with color
+function addStop(pos=0.5, color='#FFFFFF'){
+  stops.push({ id: cryptoId(), color, pos:clamp(pos,0,1) });
+  updateAll();
+}
+
+// Rainbow preset
+function rainbowPreset(){
+  const pieces = [
+    ['#FF0000',0.0],
+    ['#FF7F00',0.15],
+    ['#FFFF00',0.33],
+    ['#00FF00',0.5],
+    ['#00FFFF',0.67],
+    ['#0000FF',0.82],
+    ['#8000FF',1.0],
+  ];
+  stops = pieces.map(p=>({id:cryptoId(),color:p[0],pos:p[1]}));
+  updateAll();
+}
+
+// Reset to simple 2-stop
+function resetTwo(){
+  stops = [
+    {id:cryptoId(), color:'#55CDFC', pos:0},
+    {id:cryptoId(), color:'#FF69B4', pos:1}
+  ];
+  updateAll();
+}
+
+// Copy to clipboard helpers
+async function copyText(t){
+  try{
+    await navigator.clipboard.writeText(t);
+    flashButton(copyBtn, 'Copied!');
+  }catch(e){
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = t; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+    flashButton(copyBtn, 'Copied!');
+  }
+}
+function flashButton(el, text){
+  const original = el.textContent;
+  el.textContent = text;
+  setTimeout(()=> el.textContent = original, 1400);
+}
+
+// Copy HTML preview (for web use)
+function copyPreviewHtml(){
+  // Build simple HTML: span with colored characters
+  const text = textInput.value || '';
+  const terrStr = buildTerrariaString(text);
+  const html = terrStr.replace(/\[c\/([A-Fa-f0-9]{6}):([\s\S])\]/g, (m, hex, ch) => {
+    const safe = ch === ' ' ? '&nbsp;' : (ch==='<'? '&lt;' : (ch==='>'? '&gt;' : (ch==='&' ? '&amp;' : ch)));
+    return `<span style="color:#${hex};">${safe}</span>`;
+  });
+  copyText(html);
+  flashButton(copyHtmlBtn, 'Copied HTML');
+}
+
+// Download text file
+function downloadTxt(){
+  const blob = new Blob([outputEl.value], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'terraria-gradient.txt';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// Select all in output
+function selectAllOutput(){
+  outputEl.focus(); outputEl.select();
+}
+
+// Initialize events
+addStopBtn.addEventListener('click', ()=> addStop(0.5, '#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0')));
+rainbowBtn.addEventListener('click', rainbowPreset);
+resetBtn.addEventListener('click', resetTwo);
+textInput.addEventListener('input', updateAll);
+colorSpacesCheckbox.addEventListener('change', updateAll);
+modeEl.addEventListener('change', updateAll);
+
+copyBtn.addEventListener('click', ()=> copyText(outputEl.value));
+copyHtmlBtn.addEventListener('click', copyPreviewHtml);
+downloadBtn.addEventListener('click', downloadTxt);
+selectAllBtn.addEventListener('click', selectAllOutput);
+
+// Quick initializer
+resetTwo();
+
+// Allow clicking the bar to add a stop at clicked position
+barEl.addEventListener('click', (ev)=>{
+  const rect = barEl.getBoundingClientRect();
+  const x = ev.clientX - rect.left;
+  const pos = clamp(x / rect.width, 0, 1);
+  addStop(pos, '#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'));
+});
+
+// Dragging support for the stop dots (allow repositioning by dragging the dots)
+let dragging = null;
+stopDotsEl.addEventListener('pointerdown', (ev)=>{
+  const target = ev.target;
+  if(!target.classList.contains('stop-dot')) return;
+  dragging = target;
+  target.setPointerCapture(ev.pointerId);
+  ev.preventDefault();
+});
+stopDotsEl.addEventListener('pointermove', (ev)=>{
+  if(!dragging) return;
+  const rect = barEl.getBoundingClientRect();
+  const x = clamp(ev.clientX - rect.left, 0, rect.width);
+  const pct = x / rect.width;
+  // find which stop corresponds (match by left pos)
+  // approximate by nearest stop by pos
+  let nearest = null; let best = 1;
+  stops.forEach(s=>{
+    const d = Math.abs(s.pos - parseFloat(dragging.style.left)/100);
+    if(d < best){ best = d; nearest = s; }
+  });
+  if(nearest){
+    nearest.pos = pct;
+    updateAll();
+  }
+});
+stopDotsEl.addEventListener('pointerup', (ev)=>{
+  if(!dragging) return;
+  dragging.releasePointerCapture(ev.pointerId);
+  dragging = null;
+});
+
+// keyboard: Ctrl+C while focus on text -> copy output
+textInput.addEventListener('keydown', (e)=>{
+  if(e.ctrlKey && e.key.toLowerCase() === 'c'){
+    copyText(outputEl.value);
+  }
+});
+
+// Initial render
+updateAll();
+
+</script>
+</body>
+</html>
